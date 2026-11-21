@@ -1,0 +1,19 @@
+{
+  "$comment": "Registry used by scripts/lib/adapters.mjs to generate agent adapters. 'file' is relative to .harness/.",
+  "commands": [
+    { "name": "harness-setup", "file": "stages/01-setup.md", "description": "Pre-launch setup of the agent harness: reads the spec (intake), asks every question once (mode, git, deploy target, secrets, limits), configures CLIs and runs preflight. Run before harness-run.", "userOnly": true, "args": "[--reconfigure]" },
+    { "name": "harness-run", "file": "orchestrator.md", "description": "Orchestrator of the agent harness: runs or resumes the pipeline from plan to production in supervised or auto mode, as configured in .harness/config.json.", "userOnly": true, "args": "[--from <stage>] [--story <id>] [--dry-run]" },
+    { "name": "harness-intake", "file": "stages/00-intake.md", "description": "Harness stage 00: read the specification and the repository, propose profiles, stack, deploy target, services, secrets and risk. Writes docs/intake.md only.", "args": "" },
+    { "name": "harness-preflight", "file": "stages/02-preflight.md", "description": "Harness stage 02: run the doctor and the manual checks that prove an unattended run can reach production, then ask for the launch gate.", "userOnly": true, "args": "" },
+    { "name": "harness-plan", "file": "stages/03-plan.md", "description": "Harness stage 03: turn the spec into requirements, architecture, ADRs, stories with risk markers and a tracker. Holds the plan gate.", "args": "" },
+    { "name": "harness-bootstrap", "file": "stages/04-bootstrap.md", "description": "Harness stage 04: scaffold the repository, define commands (install, verify, run, smoke), CI and deploy environments.", "args": "" },
+    { "name": "harness-story-ready", "file": "stages/05-story-ready.md", "description": "Harness stage 05 (isolated, read-only): decide whether a story is ready to start and what it lacks.", "isolated": true, "args": "<storyId>" },
+    { "name": "harness-story-contrast", "file": "stages/06-story-contrast.md", "description": "Harness stage 06: contrast a story with the current code and docs before coding, and create its branch.", "args": "<storyId>" },
+    { "name": "harness-story-implement", "file": "stages/07-story-implement.md", "description": "Harness stage 07: implement a story tests-first (test table from the spec, seen failing, then code to green). Holds the tests gate.", "args": "<storyId>" },
+    { "name": "harness-story-review", "file": "stages/08-story-review.md", "description": "Harness stage 08 (isolated, read-only): independent review of a story's diff against its criteria, ADRs and profile.", "isolated": true, "args": "<storyId | PR> [--security]" },
+    { "name": "harness-story-qa", "file": "stages/09-story-qa.md", "description": "Harness stage 09 (isolated): QA executes each acceptance criterion in a separate worktree and reports pass/fail with evidence.", "isolated": true, "args": "<storyId> [PR]" },
+    { "name": "harness-story-integrate", "file": "stages/10-story-integrate.md", "description": "Harness stage 10: push, open the PR, publish review and QA markers on the head commit, wait for CI and merge. Holds the merge gate.", "args": "<storyId>" },
+    { "name": "harness-release", "file": "stages/11-release.md", "description": "Harness stage 11: deploy to staging, verify, then promote to production with a recorded rollback point. Holds the production gate.", "args": "[--staging-only] [--rollback]" },
+    { "name": "harness-report", "file": "stages/12-report.md", "description": "Harness stage 12: write the final run report (outcome, URLs, stories, decisions taken without a human, blocked items, cost).", "args": "" }
+  ]
+}

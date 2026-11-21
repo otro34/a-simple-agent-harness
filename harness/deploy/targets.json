@@ -1,0 +1,56 @@
+{
+  "$comment": "Checks run by .harness/bin/doctor.mjs. 'run' is a shell command; {deploy.options.x} is replaced from config. expect: exit0 | nonEmpty. level: fail | warn.",
+  "common": [
+    { "id": "node", "label": "Node.js >= 18", "run": "node -e \"process.exit(Number(process.versions.node.split('.')[0])>=18?0:1)\"", "expect": "exit0", "level": "fail", "hint": "Install Node.js 18 or later" },
+    { "id": "git", "label": "git installed", "run": "git --version", "expect": "exit0", "level": "fail", "hint": "Install git" },
+    { "id": "git-repo", "label": "Inside a git repository", "run": "git rev-parse --is-inside-work-tree", "expect": "exit0", "level": "fail", "hint": "git init -b main" },
+    { "id": "gh", "label": "GitHub CLI installed", "run": "gh --version", "expect": "exit0", "level": "fail", "hint": "brew install gh" },
+    { "id": "gh-auth", "label": "GitHub CLI authenticated", "run": "gh auth status", "expect": "exit0", "level": "fail", "hint": "gh auth login (human)" },
+    { "id": "gh-repo", "label": "Access to git.repo", "run": "gh repo view {git.repo} --json name -q .name", "expect": "nonEmpty", "level": "fail", "when": "git.repo", "hint": "gh repo create {git.repo} --private --source . --remote origin" },
+    { "id": "git-remote", "label": "origin remote configured", "run": "git remote get-url origin", "expect": "exit0", "level": "warn", "hint": "git remote add origin https://github.com/{git.repo}.git" }
+  ],
+  "targets": {
+    "none": [],
+    "vercel": [
+      { "id": "vercel-cli", "label": "Vercel CLI installed", "run": "vercel --version", "expect": "exit0", "level": "fail", "hint": "npm i -g vercel" },
+      { "id": "vercel-auth", "label": "Vercel authenticated", "run": "vercel whoami ${VERCEL_TOKEN:+--token $VERCEL_TOKEN}", "expect": "exit0", "level": "fail", "hint": "vercel login (human), or export VERCEL_TOKEN" },
+      { "id": "vercel-link", "label": "Project linked (.vercel/project.json)", "run": "test -f .vercel/project.json", "expect": "exit0", "level": "fail", "hint": "vercel link --yes --project {deploy.options.project}" }
+    ],
+    "fly": [
+      { "id": "fly-cli", "label": "flyctl installed", "run": "fly version || flyctl version", "expect": "exit0", "level": "fail", "hint": "brew install flyctl" },
+      { "id": "fly-auth", "label": "Fly authenticated", "run": "fly auth whoami", "expect": "exit0", "level": "fail", "hint": "fly auth login (human), or export FLY_API_TOKEN" },
+      { "id": "fly-app-staging", "label": "Staging app exists", "run": "fly status -a {deploy.options.appStaging}", "expect": "exit0", "level": "fail", "when": "deploy.options.appStaging", "hint": "fly apps create {deploy.options.appStaging}" },
+      { "id": "fly-app-prod", "label": "Production app exists", "run": "fly status -a {deploy.options.appProduction}", "expect": "exit0", "level": "fail", "when": "deploy.options.appProduction", "hint": "fly apps create {deploy.options.appProduction}" },
+      { "id": "fly-toml", "label": "fly.toml present", "run": "test -f fly.toml", "expect": "exit0", "level": "warn", "hint": "Created in bootstrap: fly launch --no-deploy" }
+    ],
+    "railway": [
+      { "id": "railway-cli", "label": "Railway CLI installed", "run": "railway --version", "expect": "exit0", "level": "fail", "hint": "npm i -g @railway/cli" },
+      { "id": "railway-auth", "label": "Railway authenticated", "run": "railway whoami", "expect": "exit0", "level": "fail", "hint": "railway login (human), or export RAILWAY_TOKEN" },
+      { "id": "railway-link", "label": "Project linked", "run": "railway status", "expect": "exit0", "level": "fail", "hint": "railway link" }
+    ],
+    "render": [
+      { "id": "render-key", "label": "RENDER_API_KEY set", "run": "test -n \"$RENDER_API_KEY\"", "expect": "exit0", "level": "fail", "hint": "export RENDER_API_KEY=... (create it in Account settings → API keys)" },
+      { "id": "render-auth", "label": "Render API reachable with the key", "run": "curl -fsS -o /dev/null -H \"Authorization: Bearer $RENDER_API_KEY\" 'https://api.render.com/v1/owners?limit=1'", "expect": "exit0", "level": "fail", "hint": "Check the API key" },
+      { "id": "render-yaml", "label": "render.yaml present", "run": "test -f render.yaml", "expect": "exit0", "level": "warn", "hint": "Created in bootstrap" }
+    ],
+    "docker-vps": [
+      { "id": "docker", "label": "Docker running locally", "run": "docker info --format '{{.ServerVersion}}'", "expect": "nonEmpty", "level": "fail", "hint": "Start Docker Desktop / dockerd" },
+      { "id": "ssh", "label": "SSH to the server without prompt", "run": "ssh -o BatchMode=yes -o ConnectTimeout=8 {deploy.options.sshHost} true", "expect": "exit0", "level": "fail", "when": "deploy.options.sshHost", "hint": "Configure the key and the alias in ~/.ssh/config" },
+      { "id": "remote-docker", "label": "Docker Compose on the server", "run": "ssh -o BatchMode=yes -o ConnectTimeout=8 {deploy.options.sshHost} docker compose version", "expect": "exit0", "level": "fail", "when": "deploy.options.sshHost", "hint": "Install Docker Engine and the compose plugin on the server" }
+    ],
+    "aws": [
+      { "id": "aws-cli", "label": "AWS CLI installed", "run": "aws --version", "expect": "exit0", "level": "fail", "hint": "brew install awscli" },
+      { "id": "aws-auth", "label": "AWS credentials valid", "run": "aws sts get-caller-identity --profile {deploy.options.profile}", "expect": "exit0", "level": "fail", "when": "deploy.options.profile", "hint": "aws sso login --profile {deploy.options.profile}" },
+      { "id": "cdk-bootstrap", "label": "CDK bootstrapped in account/region", "run": "aws cloudformation describe-stacks --stack-name CDKToolkit --region {deploy.options.region} --profile {deploy.options.profile}", "expect": "exit0", "level": "fail", "when": "deploy.options.region", "hint": "npx aws-cdk@latest bootstrap aws://{deploy.options.account}/{deploy.options.region} --profile {deploy.options.profile}" }
+    ],
+    "gcp-cloud-run": [
+      { "id": "gcloud", "label": "gcloud installed", "run": "gcloud --version", "expect": "exit0", "level": "fail", "hint": "brew install --cask google-cloud-sdk" },
+      { "id": "gcloud-auth", "label": "gcloud has an active account", "run": "gcloud auth list --filter=status:ACTIVE --format='value(account)'", "expect": "nonEmpty", "level": "fail", "hint": "gcloud auth login (human)" },
+      { "id": "gcloud-project", "label": "gcloud project set", "run": "gcloud config get-value project", "expect": "nonEmpty", "level": "fail", "hint": "gcloud config set project {deploy.options.project}" },
+      { "id": "gcloud-run-api", "label": "Cloud Run API enabled", "run": "gcloud services list --enabled --filter=name:run.googleapis.com --format='value(name)'", "expect": "nonEmpty", "level": "fail", "hint": "gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com" }
+    ]
+  },
+  "isolation": {
+    "command": { "id": "isolation-runner", "label": "Isolation runner binary available", "level": "fail", "hint": "Install the agent CLI named in isolation.command, or set isolation.runner to native" }
+  }
+}

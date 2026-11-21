@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "a-simple-agent-harness config (.harness/config.json)",
+  "type": "object",
+  "required": ["mode", "project", "git", "deploy", "limits"],
+  "properties": {
+    "mode": { "enum": ["supervised", "auto"] },
+    "gates": {
+      "type": "object",
+      "description": "Overrides of the mode preset (see modes.md).",
+      "properties": {
+        "plan": { "enum": ["human", "auto"] },
+        "tests": { "enum": ["human", "auto"] },
+        "merge": { "enum": ["human", "auto"] },
+        "production": { "enum": ["human", "auto"] },
+        "spend": { "enum": ["human", "auto"] },
+        "destructive": { "enum": ["human", "auto"] }
+      },
+      "additionalProperties": false
+    },
+    "agents": { "type": "array", "items": { "enum": ["claude", "antigravity", "generic"] } },
+    "isolation": {
+      "type": "object",
+      "properties": {
+        "runner": { "enum": ["native", "command"] },
+        "command": { "type": "string", "description": "Headless agent command with {prompt} placeholder" }
+      }
+    },
+    "models": {
+      "type": "object",
+      "description": "Hints; agents that cannot switch models log the one they used.",
+      "properties": { "strong": { "type": "string" }, "standard": { "type": "string" } }
+    },
+    "project": {
+      "type": "object",
+      "required": ["name", "spec", "storyPrefix"],
+      "properties": {
+        "name": { "type": "string" },
+        "spec": { "type": "string" },
+        "storyPrefix": { "type": "string", "pattern": "^[A-Z][A-Z0-9-]*$" }
+      }
+    },
+    "profiles": {
+      "type": "array",
+      "items": { "enum": ["web-frontend", "api", "fullstack-web", "cli", "library", "worker", "infra", "mobile"] }
+    },
+    "stack": { "type": "object", "description": "Free-form, e.g. { \"language\": \"typescript\", \"framework\": \"next\" }" },
+    "commands": {
+      "type": "object",
+      "properties": {
+        "install": { "type": "string" },
+        "verify": { "type": "string" },
+        "run": { "type": "string" },
+        "e2e": { "type": "string" },
+        "smoke": { "type": "string" }
+      }
+    },
+    "git": {
+      "type": "object",
+      "required": ["defaultBranch", "integration"],
+      "properties": {
+        "provider": { "enum": ["github"] },
+        "repo": { "type": "string", "pattern": "^[^/]+/[^/]+$" },
+        "visibility": { "enum": ["private", "public"] },
+        "defaultBranch": { "type": "string" },
+        "integration": { "enum": ["pr", "trunk"] },
+        "mergeMethod": { "enum": ["squash", "merge", "rebase"] },
+        "attribution": { "type": "boolean" }
+      }
+    },
+    "deploy": {
+      "type": "object",
+      "required": ["target"],
+      "properties": {
+        "target": { "enum": ["none", "vercel", "fly", "railway", "render", "docker-vps", "aws", "gcp-cloud-run"] },
+        "environments": { "type": "array", "items": { "type": "string" } },
+        "strategy": { "enum": ["end", "per-milestone", "per-story"] },
+        "options": { "type": "object" }
+      }
+    },
+    "secrets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "where"],
+        "properties": {
+          "name": { "type": "string" },
+          "purpose": { "type": "string" },
+          "where": { "type": "array", "items": { "type": "string" }, "description": "e.g. [\"vercel:production\", \"vercel:preview\", \"github-actions\", \"local-env\"]" }
+        }
+      }
+    },
+    "limits": {
+      "type": "object",
+      "properties": {
+        "maxRetriesPerStep": { "type": "integer", "minimum": 1 },
+        "maxReviewRounds": { "type": "integer", "minimum": 1 },
+        "parallelStories": { "type": "integer", "minimum": 1 },
+        "allowPaidResources": { "type": "boolean" },
+        "monthlyBudgetUsd": { "type": "number", "minimum": 0 },
+        "maxRunHours": { "type": "number", "minimum": 0 }
+      }
+    },
+    "setup": {
+      "type": "object",
+      "properties": {
+        "completed": { "type": "boolean" },
+        "at": { "type": "string" },
+        "by": { "type": "string" },
+        "launchApprovedAt": { "type": "string" }
+      }
+    }
+  }
+}

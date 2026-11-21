@@ -1,0 +1,14 @@
+{
+  "runId": "",
+  "status": "running",
+  "mode": "",
+  "effectiveGates": {},
+  "startedAt": "",
+  "endedAt": null,
+  "stage": "03-plan",
+  "pipeline": [],
+  "stories": {},
+  "gates": [],
+  "resources": [],
+  "releases": []
+}

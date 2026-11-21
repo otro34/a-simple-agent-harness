@@ -1,0 +1,36 @@
+{
+  "mode": "supervised",
+  "gates": {},
+  "agents": ["claude", "antigravity", "generic"],
+  "isolation": { "runner": "native" },
+  "models": { "strong": "", "standard": "" },
+  "project": { "name": "my-app", "spec": "docs/spec.md", "storyPrefix": "US" },
+  "profiles": [],
+  "stack": {},
+  "commands": {},
+  "git": {
+    "provider": "github",
+    "repo": "",
+    "visibility": "private",
+    "defaultBranch": "main",
+    "integration": "pr",
+    "mergeMethod": "squash",
+    "attribution": false
+  },
+  "deploy": {
+    "target": "none",
+    "environments": ["staging", "production"],
+    "strategy": "end",
+    "options": {}
+  },
+  "secrets": [],
+  "limits": {
+    "maxRetriesPerStep": 3,
+    "maxReviewRounds": 3,
+    "parallelStories": 1,
+    "allowPaidResources": false,
+    "monthlyBudgetUsd": 0,
+    "maxRunHours": 0
+  },
+  "setup": { "completed": false }
+}

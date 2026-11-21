@@ -1,0 +1,14 @@
+{
+  "name": "a-simple-agent-harness",
+  "version": "0.1.0",
+  "description": "Agent-agnostic harness that takes a software specification to a production deployment, in supervised or fully automatic mode.",
+  "type": "module",
+  "bin": { "harness": "scripts/cli.mjs" },
+  "files": ["harness", "scripts"],
+  "scripts": {
+    "test": "node scripts/test.mjs"
+  },
+  "engines": { "node": ">=18" },
+  "keywords": ["agents", "claude-code", "antigravity", "agents-md", "sdlc", "harness", "devops"],
+  "license": "MIT"
+}
